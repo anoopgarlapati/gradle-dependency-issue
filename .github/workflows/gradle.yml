@@ -2,7 +2,7 @@ name: Java CI with Gradle
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '* * * * *'
 
 jobs:
   build:
