@@ -1,0 +1,100 @@
+plugins {
+    id 'java'
+}
+
+apply plugin: 'jacoco'
+
+group 'com.samples'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+test {
+    useJUnit {
+        excludeCategories 'com.samples.category.BravoCategory'
+    }
+}
+
+task bravoTest(type: Test) {
+    useJUnit {
+        includeCategories 'com.samples.category.BravoCategory'
+    }
+}
+
+def codeCoverageExclusionClasses = ['**/com/samples/Charlie*']
+
+task codeCoverageReport(type: JacocoReport) {
+    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+    sourceSets project.sourceSets.main
+
+    reports {
+        xml.enabled true
+        html.enabled = true
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: codeCoverageExclusionClasses)
+        }))
+    }
+}
+
+task codeCoverageVerification(type: JacocoCoverageVerification) {
+    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+    sourceSets project.sourceSets.main
+
+    violationRules {
+        rule {
+            limit {
+                counter = 'INSTRUCTION'
+                minimum = 0.90
+            }
+        }
+        rule {
+            limit {
+                counter = 'LINE'
+                minimum = 0.90
+            }
+        }
+        rule {
+            limit {
+                counter = 'METHOD'
+                minimum = 0.90
+            }
+        }
+        rule {
+            limit {
+                counter = 'CLASS'
+                minimum = 0.90
+            }
+        }
+        rule {
+            limit {
+                counter = 'BRANCH'
+                minimum = 0.90
+            }
+        }
+        rule {
+            limit {
+                counter = 'COMPLEXITY'
+                minimum = 0.90
+            }
+        }
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: codeCoverageExclusionClasses)
+        }))
+    }
+}
+
+test.finalizedBy bravoTest
+bravoTest.finalizedBy codeCoverageReport
+bravoTest.finalizedBy codeCoverageVerification
